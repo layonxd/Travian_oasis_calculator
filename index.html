@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travian Oasis Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #78350f;
+            font-size: 32px;
+        }
+
+        .header-icon {
+            font-size: 40px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        input, textarea {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #d97706;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+        }
+
+        textarea {
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+
+        .file-upload {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-label {
+            flex: 1;
+            padding: 10px 12px;
+            border: 2px dashed #d1d5db;
+            border-radius: 6px;
+            background: #f9fafb;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .file-upload-label:hover {
+            border-color: #d97706;
+            background: #fef3c7;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #d97706;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #b45309;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            padding: 10px 12px;
+            background: white;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-clear:hover {
+            background: #f9fafb;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .spinner {
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .results-header {
+            background: #d97706;
+            color: white;
+            padding: 20px 30px;
+        }
+
+        .results-header.emp-header {
+            background: #7c3aed;
+        }
+
+        .results-header h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .results-header p {
+            color: #fef3c7;
+            font-size: 14px;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #d97706;
+            color: white;
+            border-color: #d97706;
+        }
+
+        .tab-btn.emp-tab.active {
+            background: #7c3aed;
+            border-color: #7c3aed;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #f9fafb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            padding: 12px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #fef3c7;
+        }
+
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .rank-1 { background: #fbbf24; color: #78350f; }
+        .rank-2 { background: #d1d5db; color: #1f2937; }
+        .rank-3 { background: #fb923c; color: #7c2d12; }
+        .rank-other { background: #f3f4f6; color: #6b7280; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-blue { background: #dbeafe; color: #1e40af; }
+        .badge-yellow { background: #fef3c7; color: #92400e; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+
+        .link {
+            color: #d97706;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .link:hover {
+            color: #b45309;
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #374151;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <span class="header-icon">🏛️</span>
+                <h1>Travian Oasis Analyzer</h1>
+            </div>
+
+            <form id="analyzeForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="token">JWT Token</label>
+                        <input type="password" id="token" placeholder="Cole aqui o teu JWT token" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="x">Coordenada X da Tua Aldeia</label>
+                        <input type="number" id="x" value="182" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="y">Coordenada Y da Tua Aldeia</label>
+                        <input type="number" id="y" value="163" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="elLevel">Nível EL (0-20, 21 se não tiver)</label>
+                        <input type="number" id="elLevel" min="0" max="21" value="19" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="empLevel">Nível EMP (0-20, 21 se não tiver)</label>
+                        <input type="number" id="empLevel" min="0" max="21" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="metallurgy">Nível Metalurgia (0-10)</label>
+                        <input type="number" id="metallurgy" min="0" max="10" value="2" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tournamentSquare">Nível Praça de Torneios (0-20)</label>
+                        <input type="number" id="tournamentSquare" min="0" max="20" value="5" required>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Ficheiro de Coordenadas ou Texto</label>
+                    <div class="file-upload">
+                        <label for="fileInput" class="file-upload-label">
+                            📤 Upload myfile.txt
+                        </label>
+                        <input type="file" id="fileInput" accept=".txt">
+                        <button type="button" class="btn btn-clear" id="clearBtn" style="display: none;">✖</button>
+                    </div>
+                    <textarea id="coordinates" rows="4" placeholder="Ou cola as coordenadas aqui (formato: x y por linha, ex: '185 165')"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                    🔍 Analisar Oásis
+                </button>
+
+                <div id="errorAlert" class="alert alert-error hidden">
+                    <span>⚠️</span>
+                    <span id="errorMessage"></span>
+                </div>
+            </form>
+        </div>
+
+        <div id="resultsContainer" class="hidden">
+            <div class="tab-container">
+                <button class="tab-btn active" id="elTab" onclick="switchTab('el')">
+                    🏇 Legionários (EL)
+                </button>
+                <button class="tab-btn emp-tab" id="empTab" onclick="switchTab('emp')">
+                    ⚔️ Empaladores (EMP)
+                </button>
+            </div>
+
+            <div id="elResults">
+                <div class="results-card">
+                    <div class="results-header">
+                        <h2 id="elResultsTitle">Resultados - Legionários (EL)</h2>
+                        <p>Ordenados por valor (rentabilidade por distância por tropa)</p>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Coordenadas</th>
+                                    <th>Distância</th>
+                                    <th>Perdas</th>
+                                    <th>Tropas Necessárias</th>
+                                    <th>Valor</th>
+                                    <th>Link Mapa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="elResultsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="empResults" class="hidden">
+                <div class="results-card">
+                    <div class="results-header emp-header">
+                        <h2 id="empResultsTitle">Resultados - Empaladores (EMP)</h2>
+                        <p>Ordenados por valor (rentabilidade por distância por tropa)</p>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Coordenadas</th>
+                                    <th>Distância</th>
+                                    <th>Perdas</th>
+                                    <th>Tropas Necessárias</th>
+                                    <th>Valor</th>
+                                    <th>Link Mapa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="empResultsBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="emptyState" class="card empty-state">
+            <div class="empty-state-icon">🗺️</div>
+            <h3>Pronto para Analisar</h3>
+            <p>Faz upload do ficheiro de coordenadas ou cola as coordenadas acima</p>
+            <p style="font-size: 12px; color: #9ca3af; margin-top: 10px;">
+                Formato do ficheiro: Um par de coordenadas por linha (ex: "185 165")
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('analyzeForm');
+        const fileInput = document.getElementById('fileInput');
+        const coordinatesTextarea = document.getElementById('coordinates');
+        const clearBtn = document.getElementById('clearBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const errorAlert = document.getElementById('errorAlert');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const emptyState = document.getElementById('emptyState');
+        const elResultsBody = document.getElementById('elResultsBody');
+        const empResultsBody = document.getElementById('empResultsBody');
+        const elResultsTitle = document.getElementById('elResultsTitle');
+        const empResultsTitle = document.getElementById('empResultsTitle');
+
+        let currentTab = 'el';
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            document.getElementById('elTab').classList.toggle('active', tab === 'el');
+            document.getElementById('empTab').classList.toggle('active', tab === 'emp');
+            
+            // Show/hide results
+            document.getElementById('elResults').classList.toggle('hidden', tab !== 'el');
+            document.getElementById('empResults').classList.toggle('hidden', tab !== 'emp');
+        }
+
+        // File upload handler
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    coordinatesTextarea.value = event.target.result;
+                    clearBtn.style.display = 'block';
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', function() {
+            coordinatesTextarea.value = '';
+            fileInput.value = '';
+            clearBtn.style.display = 'none';
+        });
+
+        // Show clear button when textarea has content
+        coordinatesTextarea.addEventListener('input', function() {
+            clearBtn.style.display = this.value ? 'block' : 'none';
+        });
+
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const token = document.getElementById('token').value;
+            const x = document.getElementById('x').value;
+            const y = document.getElementById('y').value;
+            const elLevel = document.getElementById('elLevel').value;
+            const empLevel = document.getElementById('empLevel').value;
+            const metallurgy = document.getElementById('metallurgy').value;
+            const tournamentSquare = document.getElementById('tournamentSquare').value;
+            const coordinates = coordinatesTextarea.value;
+
+            // Validation
+            if (!token) {
+                showError('Por favor insere o teu JWT token');
+                return;
+            }
+
+            if (!coordinates) {
+                showError('Por favor faz upload de um ficheiro ou cola as coordenadas');
+                return;
+            }
+
+            // Hide error
+            errorAlert.classList.add('hidden');
+
+            // Show loading state
+            analyzeBtn.disabled = true;
+            const coordLines = coordinates.trim().split('\n').filter(l => l.trim());
+            analyzeBtn.innerHTML = `<div class="spinner"></div> A analisar ${coordLines.length} oásis...`;
+
+            try {
+                // Parse coordinates
+                const coordArray = coordLines.map(line => {
+                    const parts = line.trim().split(/\s+/);
+                    return [parts[0], parts[1]];
+                }).filter(coord => coord[0] && coord[1]);
+
+                // Make API request
+                const response = await fetch('http://localhost:5000/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        token: token,
+                        x: parseInt(x),
+                        y: parseInt(y),
+                        elLevel: parseInt(elLevel),
+                        empLevel: parseInt(empLevel),
+                        metallurgy: parseFloat(metallurgy),
+                        tournamentSquareLevel: parseInt(tournamentSquare),
+                        coordinates: coordArray
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao analisar oásis');
+                }
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    displayResults(data.results, data.results_emp);
+                }
+            } catch (error) {
+                showError(error.message || 'Falha ao conectar ao backend. Certifica-te que o servidor Flask está a correr na porta 5000.');
+            } finally {
+                // Reset button
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '🔍 Analisar Oásis';
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorAlert.classList.remove('hidden');
+        }
+
+        function displayResults(elResults, empResults) {
+            if (elResults.length === 0 && empResults.length === 0) {
+                emptyState.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            
+            // Display EL results
+            if (elResults.length > 0) {
+                elResultsTitle.textContent = `Resultados - Legionários (${elResults.length} oásis)`;
+                elResultsBody.innerHTML = generateResultsHTML(elResults);
+            } else {
+                elResultsBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">Nenhum resultado encontrado</td></tr>';
+            }
+
+            // Display EMP results
+            if (empResults.length > 0) {
+                empResultsTitle.textContent = `Resultados - Empaladores (${empResults.length} oásis)`;
+                empResultsBody.innerHTML = generateResultsHTML(empResults);
+            } else {
+                empResultsBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #6b7280;">Nenhum resultado encontrado</td></tr>';
+            }
+        }
+
+        function generateResultsHTML(results) {
+            return results.map((result, index) => {
+                const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : 'rank-other';
+                
+                let lossClass = 'badge-red';
+                if (result.losses === 0) lossClass = 'badge-green';
+                else if (result.losses < 5) lossClass = 'badge-blue';
+                else if (result.losses < 10) lossClass = 'badge-yellow';
+
+                return `
+                    <tr>
+                        <td>
+                            <span class="rank-badge ${rankClass}">${index + 1}</span>
+                        </td>
+                        <td>
+                            <strong>(${result.x}, ${result.y})</strong>
+                        </td>
+                        <td style="color: #6b7280;">
+                            ${result.distance} tiles
+                        </td>
+                        <td>
+                            <span class="badge ${lossClass}">${result.losses} tropas</span>
+                        </td>
+                        <td>
+                            ${result.troops}
+                        </td>
+                        <td style="color: #d97706; font-weight: 600;">
+                            ${result.value.toFixed(4)}
+                        </td>
+                        <td>
+                            <a href="https://ts2.x1.america.travian.com/karte.php?x=${result.x}&y=${result.y}" 
+                               target="_blank" 
+                               rel="noopener noreferrer" 
+                               class="link">
+                                Ver Mapa ↗
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
